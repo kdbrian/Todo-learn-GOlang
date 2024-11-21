@@ -2,6 +2,10 @@ package todo
 
 import "fmt"
 
+func init(){
+	fmt.Println("Initialized")
+}
+
 type Todo struct {
 	Title, Message string
 	IsDone         bool
