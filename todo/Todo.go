@@ -7,7 +7,16 @@ type Todo struct {
 	IsDone         bool
 }
 
-func PrintTodo(todo *Todo){
+
+type TodoBehavior interface{
+	PrintTodo()
+	UpdateTitle(newTitle string)
+	UpdateMessage(message string)
+	UpdateTodoStatus(status bool)
+}
+
+// implementing the TodoBehavior interface
+func (todo *Todo)PrintTodo(){
 	fmt.Println("-------------------------")
 	fmt.Println("Title:", todo.Title)
 	fmt.Println("Message:", todo.Message)
@@ -15,13 +24,13 @@ func PrintTodo(todo *Todo){
 	fmt.Println("-------------------------")
 }
 
-func UpdateTitle(todo *Todo, newTitle string){
+func (todo *Todo) UpdateTitle(newTitle string){
 	todo.Title = newTitle
 }
-func UpdateMessage(todo *Todo, message string){
+func (todo *Todo) UpdateMessage(message string){
 	todo.Message = message
 }
 
-func UpdateTodoStatus(todo *Todo){
-	todo.IsDone = !todo.IsDone
+func (todo *Todo) UpdateTodoStatus(status bool){
+	todo.IsDone = status
 }

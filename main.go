@@ -1,8 +1,10 @@
 package main
 
+import "todoapp/todo"
+
 func main() {
 
-	todo := Todo{}
+	todo := todo.Todo{}
 	todoPtr := &todo
 
 	//updating with pointers
@@ -10,17 +12,18 @@ func main() {
 	todoPtr.Message = "Hello world this is a message."
 	todoPtr.IsDone = false
 
-	printTodo(todoPtr)
+	//methods not visible
+	todoPtr.PrintTodo()
 
 	//updating status
-	updateTodoStatus(todoPtr)
-	printTodo(todoPtr)
+	todoPtr.UpdateTodoStatus(true)
+	todoPtr.PrintTodo()
 
-	updateTitle(todoPtr, "Some change title")
-	printTodo(todoPtr)
+	todoPtr.UpdateTitle("Some change title")
+	todoPtr.PrintTodo()
 
-	updateMessage(todoPtr,"I changed the title.")
-	printTodo(todoPtr)
+	todoPtr.UpdateMessage("I changed the title.")
+	todoPtr.PrintTodo()
 
 }
 
