@@ -37,7 +37,7 @@ func connectToDb(){
 	}
 }
 
-func GetDb() *sql.DB {
+func getDb() *sql.DB {
 	return db
 }
 
@@ -90,9 +90,14 @@ WHERE title = $2
 const fetchAllTodos = `
 SELECT * FROM todos
 `
-
 const fetchDoneTodos = `
 SELECT * FROM todos WHERE is_done = TRUE
+`
+const deleteTodoByTitle=`
+DELETE FROM todos WHERE title=$1
+`
+const clearDoneTodos =`
+DELETE FROM todos WHERE is_done=TRUE
 `
 
 func CreateTodoTable(){
@@ -262,8 +267,28 @@ func FetchDoneTodos(todos *[]Todo){
 			(*todos) = append((*todos), Todo{Id: id, Title: title, Message: message, IsDone: isDone})
 		}
 	}
+}
+
+func DeleteTodoByTitle(title string)  {
+	statement, err := db.Prepare(deleteTodoByTitle)
+	if err != nil {
+		log.Fatal("Failed prepare delete by title : ", err)
+	}
+
 	
-	// return todos
+	if rowsResult, err := statement.Exec(title); err != nil {
+		log.Fatal("Failed to delete by title : ", err)
+	}else{
+
+		rows, err := rowsResult.RowsAffected()
+		if rows == 0 || err != nil {
+			log.Fatal("No rows updated : ", err)
+		}else {
+			log.Printf("Deleted %s (%d) affected.\n", title, rows)
+		}
+	}
+
+	
 }
 
 func DeleteAllTodos(){
@@ -274,5 +299,25 @@ func DeleteAllTodos(){
 
 	if err != nil {
 		log.Fatal("Failed to drop table : ", err)
+	}
+}
+
+func ClearDoneTodos()  {
+	statement, err := db.Prepare(clearDoneTodos)
+
+	if err != nil {
+		log.Fatal("Failed prepare statement : ", err)
+	}
+
+	_, err = statement.Exec()
+	if err != nil {
+		log.Fatal("Failed clear done todos : ", err)
+	}
+}
+
+func CloseDb()  {
+	err := db.Close()
+	if err != nil {
+		log.Fatal("Failed to close connection : ", err)
 	}
 }
