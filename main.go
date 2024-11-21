@@ -1,12 +1,13 @@
 package main
 
-import "fmt"
+
+type Todo struct{
+	title, message string
+	isDone bool
+}
 
 func main() {
 
-	todo := "Go home"
-	isDone := false
-	fmt.Println(todo, isDone)
-	isDone = false
+	
 
 }
