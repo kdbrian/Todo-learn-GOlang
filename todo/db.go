@@ -1,16 +1,17 @@
 package todo
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 
 	//importing postgres for side effects
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 
-var db *sql.DB
+var db *gorm.DB
 
 //make sure dbname exists
 const connectionString = "user=postgres password=2022 host=127.0.0.1 port=5432 dbname=learningtodoapp sslmode=disable"
@@ -23,91 +24,20 @@ func init(){
 func connectToDb(){
 	var err error
 	//connect to db
-	db,err = sql.Open("postgres", connectionString)
+	db,err = gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	
 	if err != nil{
 		panic(err)
 	}
-
-	//check if connection established
-	if err = db.Ping(); err != nil {
-		log.Fatal("Failed to connect to db:", err)
-	}else {
-		fmt.Println("Connected to db.")
-	}
+	fmt.Println("Connected to db.")
 }
 
-func getDb() *sql.DB {
+func getDb() *gorm.DB {
 	return db
 }
 
-/*
-type TodoTbl interface{
-	//database operations
-	CreateTodoTable()
-	InsertSingleTodo(*Todo)
-	UpdateTodoStatus(*Todo)
-	UpdateTodoTitle(*Todo,string)
-	UpdateTodoMessage(*Todo,string)
-	FetchTodos()[]Todo
-	FetchDoneTodos()[]Todo
-	DeleteAllTodos()
-}
-*/
-
-
-const createTodoTable =`
-CREATE TABLE IF NOT EXISTS public.todos (
-	id integer,
-	title varchar(100),
-	message varchar(100),
- 	is_done BOOLEAN NOT NULL DEFAULT FALSE
-)
-
-WITH(OIDS=FALSE)
-`
-const insertSingleTodo=`
-INSERT INTO todos VALUES ($1, $2, $3, $4)
-`
-const getTodoByTitle=`
-SELECT message FROM todos WHERE title = $1
-`
-const updateTodoStatus =`
-UPDATE todos SET
-is_done = $1
-WHERE title = $2
-`
-const updateTodoTitle =`
-UPDATE todos SET
-title = $1
-WHERE title = $2
-`
-const updateTodoMessage =`
-UPDATE todos SET
-message = $1
-WHERE title = $2
-`
-const fetchAllTodos = `
-SELECT * FROM todos
-`
-const fetchDoneTodos = `
-SELECT * FROM todos WHERE is_done = TRUE
-`
-const deleteTodoByTitle=`
-DELETE FROM todos WHERE title=$1
-`
-const clearDoneTodos =`
-DELETE FROM todos WHERE is_done=TRUE
-`
-
 func CreateTodoTable(){
-	// db := GetDb()
-	if db.Ping() != nil{
-		panic("Error contacting db")
-	}
-
-	_, err := db.Exec(createTodoTable)
-	
+	err := db.AutoMigrate(&Todo{})
 	if err != nil {
 		log.Fatal("Error creating table : ", err)
 	}else {
@@ -115,209 +45,81 @@ func CreateTodoTable(){
 	}
 }
 
-func CheckTodoExists(todo *Todo) bool {
-	statement, err := db.Prepare(getTodoByTitle)
-	if err != nil {
-		log.Fatal("Failed to prepare getByTitle : ", err)
-		return false
-	}
+func CheckTodoExists(todo *Todo) (bool, Todo) {
 
-	res, err := statement.Exec(todo.Title)
-	if err != nil {
-		log.Fatalf("Failed to insert %s : %v", todo.Title,err)
-		return false
-	}
-
-	if rows,err := res.RowsAffected(); err != nil{
-		log.Fatalf("Failed to insert %s : %v", todo.Title,err)
-		return false
+	var found *Todo = nil
+	db.First(found, "title = ?", todo.Title)
+	
+	if found == nil {
+		log.Fatalf("Not found by %s", todo.Title)
+		return false, nil
 	}else {
-		if rows == 0 {
-			log.Printf("Sorry not found %s.\n", todo.Title)
-			return false
-		}else {
-			log.Printf("Got %s, %d affected",todo.Title, rows)
-			return true
-		}
+		log.Printf("Found by %s", todo.Title)
+		return true, *found
 	}
+	
 }
 
 func InsertSingleTodo(todo *Todo){
-	//prepare statement
-	statement, err := db.Prepare(insertSingleTodo)
-	if err!=nil {
-		log.Fatal("Failed to prepare statement")
-	}
-
-	//execute
-	res, err := statement.Exec(todo.Id, todo.Title, todo.Message, todo.IsDone)
-	if err != nil {
-		log.Fatal("Failed to insert record : ", err)
-	}
-
-	//check for result
-	rows, err := res.RowsAffected()
-
-	if err != nil {
-		log.Fatal("Failed to insert record : ", err)
-	}
-	log.Printf("Inserted %d successfully.", rows)
+	db.Create(todo)
+	log.Println("Inserted Todo")
 }
 
 func UpdateTodoStatus(todo *Todo){
-	if exists := CheckTodoExists(todo); !exists {
+	if exists, _ := CheckTodoExists(todo); !exists {
 		log.Fatalf("No todo found. not updating")
 	}else{
-
-		statement, err := db.Prepare(updateTodoStatus)
-		if err != nil {
-			log.Fatal("Failed to prepare update", err)
-		}
-
-		_, err = statement.Exec(todo.IsDone, todo.Title)
-		if err != nil {
-			log.Fatal("Failed to update", err)
-		}
-
+		db.Update("is_done", todo.IsDone)
 		log.Println("Updated todo")
 	}
 }
 
 func UpdateTodoTitle(todo *Todo, newTitle string){
-	if exists := CheckTodoExists(todo); !exists {
+	if exists, _ := CheckTodoExists(todo); !exists {
 		log.Fatalf("No todo found. not updating")
 	}else{
-
-		statement, err := db.Prepare(updateTodoTitle)
-		if err != nil {
-			log.Fatal("Failed to prepare update", err)
-		}
-
-		_, err = statement.Exec(newTitle,todo.Title)
-		if err != nil {
-			log.Fatal("Failed to update", err)
-		}
-
+		db.Update("title", newTitle)
 		log.Println("Updated todo")
 	}
 }
 
 func UpdateTodoMessage(todo *Todo, newMessage string){
-	if exists := CheckTodoExists(todo); !exists {
+	if exists, _ := CheckTodoExists(todo); !exists {
 		log.Fatalf("No todo found. not updating")
 	}else{
-
-		statement, err := db.Prepare(updateTodoMessage)
-		if err != nil {
-			log.Fatal("Failed to prepare update", err)
-		}
-
-		_, err = statement.Exec(newMessage,todo.Title)
-		if err != nil {
-			log.Fatal("Failed to update", err)
-		}
-
+		db.Update("message", newMessage)
 		log.Println("Updated todo")
 	}
 }
 
 func FetchTodos(todos *[]Todo){
-	// todos =nil; todos = &(make([]Todo,1))
-	result, err := db.Prepare(fetchAllTodos)
-
-	if err != nil {
-		log.Fatal("Failed to load todos : ", err)
-	}
-
-	if rows,err := result.Query(); err != nil {
-		log.Fatal("Failed to load todos : ", err)
-	}else {
-		for rows.Next() {
-			var title, message string
-			var isDone bool
-			var id int
-			err := rows.Scan(&id, &title,&message,&isDone)
-			// fmt.Printf("Got (%d, %s, %s, , %v)", id, title, message, isDone)
-			if err != nil {
-				log.Fatal("Failed to offload row : ", err)
-			}
-			(*todos) = append((*todos), Todo{Id: id, Title: title, IsDone: isDone})
-		}
-	}
+	db.Find(todos)
 }
 
 func FetchDoneTodos(todos *[]Todo){
-	result, err := db.Prepare(fetchDoneTodos)
-
-	if err != nil {
-		log.Fatal("Failed to load todos : ", err)
-	}
-
-	if rows,err := result.Query(); err != nil {
-		log.Fatal("Failed to load todos : ", err)
-	}else {
-		for rows.Next() {
-			var title, message string
-			var isDone bool
-			var id int
-			err := rows.Scan(&id, &title,&message,&isDone)
-			if err != nil {
-				log.Fatal("Failed to offload row : ", err)
-			}
-			(*todos) = append((*todos), Todo{Id: id, Title: title, Message: message, IsDone: isDone})
-		}
-	}
+	db.Find(todos, "is_done = ?", true)
 }
 
 func DeleteTodoByTitle(title string)  {
-	statement, err := db.Prepare(deleteTodoByTitle)
-	if err != nil {
-		log.Fatal("Failed prepare delete by title : ", err)
+	if isFound, todo := CheckTodoExists(&Todo{Title: title}); !isFound {
+		log.Fatalf("Missing todo with title : %s\n",title)
+	}else {
+		db.Delete(todo, "title = ?", title)
+		log.Println("Deleted todo")
 	}
+}
 
+// func DeleteAllTodos(){
+// 	db.Delete("")
+// }
+
+// func ClearDoneTodos()  {
 	
-	if rowsResult, err := statement.Exec(title); err != nil {
-		log.Fatal("Failed to delete by title : ", err)
-	}else{
+// }
 
-		rows, err := rowsResult.RowsAffected()
-		if rows == 0 || err != nil {
-			log.Fatal("No rows updated : ", err)
-		}else {
-			log.Printf("Deleted %s (%d) affected.\n", title, rows)
-		}
-	}
-
-	
-}
-
-func DeleteAllTodos(){
-	const trancuteTodoTbl = `
-	TRUNCATE TABLE todos
-	`
-	_, err := db.Exec(trancuteTodoTbl)
-
-	if err != nil {
-		log.Fatal("Failed to drop table : ", err)
-	}
-}
-
-func ClearDoneTodos()  {
-	statement, err := db.Prepare(clearDoneTodos)
-
-	if err != nil {
-		log.Fatal("Failed prepare statement : ", err)
-	}
-
-	_, err = statement.Exec()
-	if err != nil {
-		log.Fatal("Failed clear done todos : ", err)
-	}
-}
-
-func CloseDb()  {
-	err := db.Close()
-	if err != nil {
-		log.Fatal("Failed to close connection : ", err)
-	}
-}
+// func CloseDb()  {
+// 	err := db. ()
+// 	if err != nil {
+// 		log.Fatal("Failed to close connection : ", err)
+// 	}
+// }
