@@ -2,6 +2,8 @@ package todo
 
 import (
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 func init(){
@@ -9,7 +11,7 @@ func init(){
 }
 
 type Todo struct {
-	Id int
+	gorm.Model
 	Title, Message string
 	IsDone         bool
 }
