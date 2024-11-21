@@ -8,15 +8,13 @@ import (
 func main() {
 
 	//close db before script close
-	defer func ()  {
-		todo.CloseDb()
-	}()
-
+	// defer func ()  {
+	// 	todo.CloseDb()
+	// }()
 
 	todo.CreateTodoTable()
 	todo.InsertSingleTodo(
 		& todo.Todo{
-		Id: 1,
 		Title: "Hello todo 1",
 	 	Message: "Hello I was created. first",
 		IsDone: false,
@@ -24,7 +22,6 @@ func main() {
 
 	todo.InsertSingleTodo(
 		& todo.Todo{
-		Id: 2,
 		Title: "Hello todo 2",
 	 	Message: "Hello I was created. second",
 		IsDone: false,
@@ -64,7 +61,7 @@ func main() {
 	fmt.Println("AFTER DELETING : ",updatedTodos)
 
 	//clearing db
-	todo.ClearDoneTodos()
+	// todo.ClearDoneTodos()
 	var notDoneTodos []todo.Todo
 	todo.FetchTodos(&notDoneTodos)
 	fmt.Println("NOT DONE : ",notDoneTodos)

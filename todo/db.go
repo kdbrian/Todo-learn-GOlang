@@ -45,17 +45,17 @@ func CreateTodoTable(){
 	}
 }
 
-func CheckTodoExists(todo *Todo) (bool, Todo) {
+func CheckTodoExists(todo *Todo) (bool, *Todo) {
 
 	var found *Todo = nil
 	db.First(found, "title = ?", todo.Title)
 	
 	if found == nil {
-		log.Fatalf("Not found by %s", todo.Title)
+		log.Printf("Not found by %s", todo.Title)
 		return false, nil
 	}else {
 		log.Printf("Found by %s", todo.Title)
-		return true, *found
+		return true, found
 	}
 	
 }
@@ -67,7 +67,7 @@ func InsertSingleTodo(todo *Todo){
 
 func UpdateTodoStatus(todo *Todo){
 	if exists, _ := CheckTodoExists(todo); !exists {
-		log.Fatalf("No todo found. not updating")
+		log.Println("No todo found. not updating")
 	}else{
 		db.Update("is_done", todo.IsDone)
 		log.Println("Updated todo")
@@ -76,7 +76,7 @@ func UpdateTodoStatus(todo *Todo){
 
 func UpdateTodoTitle(todo *Todo, newTitle string){
 	if exists, _ := CheckTodoExists(todo); !exists {
-		log.Fatalf("No todo found. not updating")
+		log.Println("No todo found. not updating")
 	}else{
 		db.Update("title", newTitle)
 		log.Println("Updated todo")
@@ -85,7 +85,7 @@ func UpdateTodoTitle(todo *Todo, newTitle string){
 
 func UpdateTodoMessage(todo *Todo, newMessage string){
 	if exists, _ := CheckTodoExists(todo); !exists {
-		log.Fatalf("No todo found. not updating")
+		log.Println("No todo found. not updating")
 	}else{
 		db.Update("message", newMessage)
 		log.Println("Updated todo")
@@ -102,7 +102,7 @@ func FetchDoneTodos(todos *[]Todo){
 
 func DeleteTodoByTitle(title string)  {
 	if isFound, todo := CheckTodoExists(&Todo{Title: title}); !isFound {
-		log.Fatalf("Missing todo with title : %s\n",title)
+		log.Printf("Missing todo with title : %s\n",title)
 	}else {
 		db.Delete(todo, "title = ?", title)
 		log.Println("Deleted todo")
