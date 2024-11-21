@@ -1,12 +1,5 @@
 package main
 
-import "fmt"
-
-type Todo struct {
-	Title, Message string
-	IsDone         bool
-}
-
 func main() {
 
 	todo := Todo{}
@@ -16,7 +9,7 @@ func main() {
 	todoPtr.Title = "Hello world"
 	todoPtr.Message = "Hello world this is a message."
 	todoPtr.IsDone = false
-	
+
 	printTodo(todoPtr)
 
 	//updating status
@@ -31,22 +24,3 @@ func main() {
 
 }
 
-
-func printTodo(todo *Todo){
-	fmt.Println("-------------------------")
-	fmt.Println("Title:", todo.Title)
-	fmt.Println("Message:", todo.Message)
-	fmt.Println("isDone:", todo.IsDone)
-	fmt.Println("-------------------------")
-}
-
-func updateTitle(todo *Todo, newTitle string){
-	todo.Title = newTitle
-}
-func updateMessage(todo *Todo, message string){
-	todo.Message = message
-}
-
-func updateTodoStatus(todo *Todo){
-	todo.IsDone = !todo.IsDone
-}
