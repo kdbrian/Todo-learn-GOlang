@@ -10,22 +10,34 @@ type Todo struct {
 func main() {
 
 	todo := Todo{}
-	todo.Title = "Hello world"
-	todo.Message = "Hello world this is a message."
-	todo.IsDone = false
-	fmt.Println(todo)
-
 	todoPtr := &todo
+
+	//updating with pointers
+	todoPtr.Title = "Hello world"
+	todoPtr.Message = "Hello world this is a message."
+	todoPtr.IsDone = false
+	
+	printTodo(todoPtr)
+
 	//updating status
 	updateTodoStatus(todoPtr)
-	fmt.Println(todo)
+	printTodo(todoPtr)
 
 	updateTitle(todoPtr, "Some change title")
-	fmt.Println(todo)
+	printTodo(todoPtr)
 
 	updateMessage(todoPtr,"I changed the title.")
-	fmt.Println(todo)
+	printTodo(todoPtr)
 
+}
+
+
+func printTodo(todo *Todo){
+	fmt.Println("-------------------------")
+	fmt.Println("Title:", todo.Title)
+	fmt.Println("Message:", todo.Message)
+	fmt.Println("isDone:", todo.IsDone)
+	fmt.Println("-------------------------")
 }
 
 func updateTitle(todo *Todo, newTitle string){
