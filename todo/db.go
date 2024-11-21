@@ -92,7 +92,7 @@ SELECT * FROM todos
 `
 
 const fetchDoneTodos = `
-SELECT * FROM todos WHERE is_done = 1
+SELECT * FROM todos WHERE is_done = TRUE
 `
 
 func CreateTodoTable(){
@@ -127,8 +127,13 @@ func CheckTodoExists(todo *Todo) bool {
 		log.Fatalf("Failed to insert %s : %v", todo.Title,err)
 		return false
 	}else {
-		log.Printf("Got %s, %d affected",todo.Title, rows)
-		return true
+		if rows == 0 {
+			log.Printf("Sorry not found %s.\n", todo.Title)
+			return false
+		}else {
+			log.Printf("Got %s, %d affected",todo.Title, rows)
+			return true
+		}
 	}
 }
 
@@ -149,9 +154,9 @@ func InsertSingleTodo(todo *Todo){
 	rows, err := res.RowsAffected()
 
 	if err != nil {
-		log.Fatalf("Failed to insert record : ", err)
+		log.Fatal("Failed to insert record : ", err)
 	}
-	log.Fatalf("Inserted %d successfully.", rows)
+	log.Printf("Inserted %d successfully.", rows)
 }
 
 func UpdateTodoStatus(todo *Todo){
@@ -164,7 +169,7 @@ func UpdateTodoStatus(todo *Todo){
 			log.Fatal("Failed to prepare update", err)
 		}
 
-		_, err = statement.Exec(todo.Title, todo.IsDone)
+		_, err = statement.Exec(todo.IsDone, todo.Title)
 		if err != nil {
 			log.Fatal("Failed to update", err)
 		}
@@ -236,7 +241,7 @@ func FetchTodos(todos *[]Todo){
 	}
 }
 
-func FetchDoneTodos() (todos []Todo){
+func FetchDoneTodos(todos *[]Todo){
 	result, err := db.Prepare(fetchDoneTodos)
 
 	if err != nil {
@@ -254,11 +259,11 @@ func FetchDoneTodos() (todos []Todo){
 			if err != nil {
 				log.Fatal("Failed to offload row : ", err)
 			}
-			todos = append(todos, Todo{Id: id, Title: title, IsDone: isDone})
+			(*todos) = append((*todos), Todo{Id: id, Title: title, Message: message, IsDone: isDone})
 		}
 	}
 	
-	return todos
+	// return todos
 }
 
 func DeleteAllTodos(){
