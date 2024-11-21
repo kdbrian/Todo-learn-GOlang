@@ -1,31 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"todoapp/todo"
 )
 
 func main() {
 
-	todo := todo.Todo{}
-	todoPtr := &todo
+	//for databases
+	// newTodo := todo.Todo{
+	// 	Id: 1,
+	// 	Title: "Hello todo",
+	//  	Message: "Hello I was created.",
+	// 	IsDone: false,
+	// }
 
-	//updating with pointers
-	todoPtr.Title = "Hello world"
-	todoPtr.Message = "Hello world this is a message."
-	todoPtr.IsDone = false
+	//close db after script close
+	defer func(){
+		todo.GetDb().Close()
+	}()
 
-	//methods not visible
-	todoPtr.PrintTodo()
-
-	//updating status
-	todoPtr.UpdateTodoStatus(true)
-	todoPtr.PrintTodo()
-
-	todoPtr.UpdateTitle("Some change title")
-	todoPtr.PrintTodo()
-
-	todoPtr.UpdateMessage("I changed the title.")
-	todoPtr.PrintTodo()
-
+	// todo.CreateTodoTable()
+	// todo.InsertSingleTodo(&newTodo)
+	var todos []todo.Todo
+	todo.FetchTodos(&todos)
+	fmt.Println(todos)
+	
+	todo.DeleteAllTodos()
 }
 

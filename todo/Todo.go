@@ -1,18 +1,22 @@
 package todo
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func init(){
 	fmt.Println("Initialized")
 }
 
 type Todo struct {
+	Id int
 	Title, Message string
 	IsDone         bool
 }
 
 
-type TodoBehavior interface{
+type TodoBehavior interface{	
+	//normal operations
 	PrintTodo()
 	UpdateTitle(newTitle string)
 	UpdateMessage(message string)
@@ -38,3 +42,4 @@ func (todo *Todo) UpdateMessage(message string){
 func (todo *Todo) UpdateTodoStatus(status bool){
 	todo.IsDone = status
 }
+
