@@ -11,6 +11,11 @@ This code is divided by branches. starting from master where I use plain variabl
 	    isDone := false
     ```
     these are updated and printed by direct mutation.
+    ```go
+        isDone = true
+        fmt.Println(todo, isDone)
+    ```
+
 - ### Structs
     I introduce the concepts of using structs to simplify how related data is sparse over. With this I push all <em>Todo</em> related code to the <code>/todo</code> package for easier maintainance.
 
@@ -31,6 +36,23 @@ This code is divided by branches. starting from master where I use plain variabl
         func (todo *Todo)PrintTodo()
     ```
     With this i still get access to all methods while just pointing to the same adress.
+
+    Invocation over objects is as : 
+    ```go
+    	todo := todo.Todo{} //creating an instance
+
+        todoPtr.PrintTodo()
+
+        //updating status
+        todoPtr.UpdateTodoStatus(true)
+        todoPtr.PrintTodo()
+
+        todoPtr.UpdateTitle("Some change title")
+        todoPtr.PrintTodo()
+
+        todoPtr.UpdateMessage("I changed the title.")
+        todoPtr.PrintTodo()
+    ```
 - ### Postgres
     Postgres provides an API over golang that can be used to access sql databases, with raw sql and prepared statements.
     - starts by creating a database connection specifying all the required parameters
